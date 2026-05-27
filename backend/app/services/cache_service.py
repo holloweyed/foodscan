@@ -10,14 +10,6 @@ from app.config import get_settings
 
 
 class CacheService:
-    """
-    Сервис кэширования на основе Redis.
-    
-    Кэширует:
-    - Результаты OCR (хэш изображения -> текст)
-    - Информацию о добавках (E-код -> данные)
-    - Результаты анализа (хэш изображения -> полный результат)
-    """
     
     def __init__(self):
         settings = get_settings()
@@ -26,8 +18,6 @@ class CacheService:
         self.redis_url = settings.redis_url
         self.ttl_ocr = settings.CACHE_TTL_OCR
         self.ttl_additive = settings.CACHE_TTL_ADDITIVE
-        
-        # In-memory кэш как fallback
         self.local_cache: Dict[str, Dict[str, Any]] = {}
     
     async def connect(self):
@@ -51,18 +41,8 @@ class CacheService:
             logger.info("Disconnected from Redis")
     
     async def get_ocr_cache(self, image_hash: str) -> Optional[str]:
-        """
-        Получает кэшированный результат OCR.
-        
-        Args:
-            image_hash: SHA-256 хэш изображения
-            
-        Returns:
-            Распознанный текст или None
-        """
         cache_key = f"ocr:{image_hash}"
-        
-        # Пробуем Redis
+
         if self.redis_client:
             try:
                 cached = await self.redis_client.get(cache_key)
@@ -72,7 +52,6 @@ class CacheService:
             except Exception as e:
                 logger.warning(f"Redis get failed: {e}")
         
-        # Fallback на локальный кэш
         if cache_key in self.local_cache:
             logger.debug(f"Local cache hit for OCR: {image_hash[:16]}")
             return self.local_cache[cache_key]["data"]
@@ -80,17 +59,9 @@ class CacheService:
         return None
     
     async def set_ocr_cache(self, image_hash: str, text: str):
-        """
-        Кэширует результат OCR.
-        
-        Args:
-            image_hash: SHA-256 хэш изображения
-            text: Распознанный текст
-        """
         cache_key = f"ocr:{image_hash}"
         ttl = self.ttl_ocr
         
-        # Пробуем Redis
         if self.redis_client:
             try:
                 await self.redis_client.setex(cache_key, ttl, text)
@@ -98,23 +69,14 @@ class CacheService:
                 return
             except Exception as e:
                 logger.warning(f"Redis set failed: {e}")
-        
-        # Fallback на локальный кэш
+
         self.local_cache[cache_key] = {
             "data": text,
-            "expires_at": None,  # В локальном кэше без TTL
+            "expires_at": None,
         }
     
     async def get_analysis_cache(self, image_hash: str) -> Optional[Dict]:
-        """
-        Получает кэшированный результат анализа.
-        
-        Args:
-            image_hash: SHA-256 хэш изображения
-            
-        Returns:
-            Результат анализа или None
-        """
+
         cache_key = f"analysis:{image_hash}"
         
         if self.redis_client:
@@ -133,15 +95,9 @@ class CacheService:
         return None
     
     async def set_analysis_cache(self, image_hash: str, result: Dict):
-        """
-        Кэширует результат анализа.
-        
-        Args:
-            image_hash: SHA-256 хэш изображения
-            result: Результат анализа
-        """
+
         cache_key = f"analysis:{image_hash}"
-        ttl = self.ttl_ocr  # Используем тот же TTL
+        ttl = self.ttl_ocr
         
         if self.redis_client:
             try:
@@ -158,15 +114,6 @@ class CacheService:
         }
     
     async def get_additive_cache(self, e_code: str) -> Optional[Dict]:
-        """
-        Получает кэшированную информацию о добавке.
-        
-        Args:
-            e_code: E-код добавки
-            
-        Returns:
-            Информация о добавке или None
-        """
         cache_key = f"additive:{e_code}"
         
         if self.redis_client:

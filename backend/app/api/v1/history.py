@@ -110,8 +110,7 @@ async def delete_scan(
             detail="Scan not found",
         )
     
-    # Здесь должен быть вызов удаления
-    # await repo.delete_scan(scan_id)
+    await repo.delete_scan(scan_id)
     
     logger.info(f"User {current_user.id} deleted scan {scan_id}")
     

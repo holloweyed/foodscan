@@ -4,8 +4,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, validator
 
 
-# ===== Схемы для пищевых добавок =====
-
 class AdditiveBase(BaseModel):
     e_code: str = Field(..., min_length=3, max_length=10, pattern=r'^E\d{3,4}[a-f]?$')
     name_ru: str = Field(..., min_length=1, max_length=200)
@@ -42,13 +40,11 @@ class AdditiveAnalysisResult(BaseModel):
     description: str
     recommendation: str
     allowed_in_rus: bool
-    risk_icon: str  # Символ опасности для UI
+    risk_icon: str
     
     class Config:
         from_attributes = True
 
-
-# ===== Схемы для анализа =====
 
 class AnalysisRequest(BaseModel):
     """Запрос на анализ изображения"""
@@ -76,8 +72,6 @@ class AnalysisError(BaseModel):
     message: str
     request_id: Optional[str] = None
 
-
-# ===== Схемы для пользователей =====
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -108,8 +102,6 @@ class TokenResponse(BaseModel):
     user: UserResponse
 
 
-# ===== Схемы для истории сканирований =====
-
 class ScanHistoryItem(BaseModel):
     id: int
     image_thumbnail: Optional[str] = None
@@ -135,8 +127,6 @@ class ScanHistoryResponse(BaseModel):
     page: int
     page_size: int
 
-
-# ===== Схемы для здоровья и метрик =====
 
 class HealthCheck(BaseModel):
     status: str
