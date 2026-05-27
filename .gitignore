@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+*.log
+
+# Node
+node_modules/
+.expo/
+dist/
+
+# Android
+*.apk
+*.aab
+*.keystore
+local.properties
+.gradle/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
